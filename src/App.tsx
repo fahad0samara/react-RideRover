@@ -4,7 +4,6 @@ import DarkModeToggle from './hooks/DarkModeToggle';
 import { useDarkMode } from './hooks/useDarkMode';
 
 import {ToastContainer} from "react-toastify";
-import { Analytics } from "@vercel/analytics/react";
 import Router from './redux/Router/Router';
 
 function App() {
@@ -16,7 +15,6 @@ function App() {
     }`}
   >
     <DarkModeToggle />
-    <Analytics />
 
     <ToastContainer />
     <Router />
