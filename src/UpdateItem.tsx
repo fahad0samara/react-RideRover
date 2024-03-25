@@ -1,7 +1,4 @@
-//@ts-nocheck
-
-import Switch from 'react-switch';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AiOutlineCloudUpload, AiOutlineReload } from 'react-icons/ai';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -15,9 +12,7 @@ interface UpdateMenuItemFormProps {
     name?: string;
     price?: string;
     description?: string;
-    isNewProduct?: boolean;
-    discountPercentage?: string;
-    originalPrice?: string;
+    image?: string; // Add image property
   };
   onClose: () => void;
   onUpdate: () => void;
@@ -34,109 +29,65 @@ const UpdateMenuItemForm: React.FC<UpdateMenuItemFormProps> = ({
   const [price, setPrice] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [image, setImage] = useState<File | null>(null);
-  const [isNewProduct, setIsNewProduct] = useState<boolean>(false);
-  const [originalPrice, setOriginalPrice] = useState<string>('');
-  const [discountPercentage, setDiscountPercentage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // State for image preview
+  const [imagePreview, setImagePreview] = useState<string | null>(initialValues.image || null);
+
   useEffect(() => {
-    // Update the form fields when initialValues change
     if (initialValues) {
       const {
         name,
         price,
         description,
-        isNewProduct,
-        discountPercentage,
-        originalPrice,
+        image // Add image here
       } = initialValues;
       setName(name || '');
       setPrice(price || '');
       setDescription(description || '');
-      setIsNewProduct(isNewProduct || false);
-      setDiscountPercentage(discountPercentage || '');
-      setOriginalPrice(originalPrice || '');
     }
   }, [initialValues]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-
-    if (!name) {
+    if (!name.trim()) {
       errors.name = 'Name is required';
     }
-
     if (!price) {
       errors.price = 'Price is required';
     } else if (isNaN(parseFloat(price))) {
       errors.price = 'Price must be a number';
     }
-
-    if (originalPrice && !discountPercentage) {
-      errors.discountPercentage = 'Discount Percentage is required';
-    } else if (isNewProduct && isNaN(parseFloat(discountPercentage))) {
-      errors.discountPercentage = 'Discount Percentage must be a number';
-    }
-
-    if (originalPrice && !originalPrice) {
-      errors.originalPrice = 'Discount price is required';
-    } else if (originalPrice && isNaN(parseFloat(originalPrice))) {
-      errors.originalPrice = 'Discount price must be a number';
-    }
-
-    if (!description) {
+    if (!description.trim()) {
       errors.description = 'Description is required';
     }
-
-    if (!isNewProduct) {
-      setDiscountPercentage('');
-    }
-
     setErrors(errors);
-
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) {
       return;
     }
-
     const formData = new FormData();
     formData.append('name', name);
     formData.append('price', price);
     formData.append('description', description);
-    formData.append('isNewProduct', String(isNewProduct));
-    if (isNewProduct) {
-      formData.append('discountPercentage', discountPercentage);
-    }
-
     if (image) {
       formData.append('image', image);
     }
-
-    if (originalPrice) {
-      formData.append('originalPrice', originalPrice);
-    }
-
     try {
       setIsLoading(true);
-
       const response = await fetch(`${API_URL}/products/${itemId}`, {
         method: 'PUT',
         body: formData,
       });
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || 'Something went wrong');
       }
-
       toast.success('Menu Item Updated Successfully');
       onUpdate();
       onClose();
@@ -261,20 +212,34 @@ const UpdateMenuItemForm: React.FC<UpdateMenuItemFormProps> = ({
                 <p className="text-red-500 text-sm mt-1">{errors.name}</p>
               )}
             </div>
-            <div className="mb-4 ml-5">
-              <label className="block font-medium mb-2" htmlFor="isNewProduct">
-                Is the product new?
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium">
+              price
               </label>
-              <div className="flex items-center">
-                <Switch
-                  id="isNewProduct"
-                  onChange={() => setIsNewProduct(!isNewProduct)}
-                  checked={isNewProduct}
-                />
-                <label htmlFor="isNewProduct" className="text-sm">
-                  {isNewProduct ? 'Yes' : 'No'}
-                </label>
-              </div>
+              <input
+                id="name"
+                type="text"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className={`
+                  w-full
+                  px-4
+                  py-2
+                  border
+                  rounded-md
+                  ${isDarkMode ? 'bg-gray-600 text-white' : 'bg-gray-300 text-black'}
+                  mt-2
+                  ${errors.price ? 'border-red-500' : 'border-gray-300'}
+                  rounded-lg
+                  shadow-sm
+                  focus:border-blue-500
+                  focus:outline-none
+                  focus:ring-blue-500
+                `}
+              />
+              {errors.price && (
+                <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+              )}
             </div>
           </div>
           <div className="mb-4">
@@ -305,107 +270,7 @@ const UpdateMenuItemForm: React.FC<UpdateMenuItemFormProps> = ({
               <p className="text-red-500 text-sm mt-1">{errors.description}</p>
             )}
           </div>
-          <div className={`grid grid-cols-1 md:grid-cols-1 gap-4`}>
-            <div className="w-full px-2 mb-4 flex items-center">
-              <label
-                className="mr-4"
-                htmlFor="originalPrice"
-              >
-                Do you want to add a discount price?
-                <span className="ml-2">
-                  {originalPrice ? 'Yes' : 'No'}
-                </span>
-              </label>
-              <Switch
-                id="originalPrice"
-    
-                onChange={() => setOriginalPrice(!originalPrice)}
-                checked={originalPrice}
-              />
-            </div>
-            {originalPrice && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {originalPrice && (
-                  <div className="mb-4">
-                    <label htmlFor="originalPrice" className="block mb-1">
-                      Original Price
-                    </label>
-                    <input
-                      placeholder="Enter product original price"
-                      type="number"
-                      id="originalPrice"
-                      name="originalPrice"
-                      value={originalPrice}
-                      onChange={(e) => setOriginalPrice(e.target.value)}
-                      className={`
-                        w-full
-                        px-4
-                        py-2
-                        border
-                        rounded-md
-                        ${isDarkMode ? 'bg-gray-600 text-white' : 'bg-gray-300 text-black'}
-                      `}
-                      min="0"
-                      step="0.01"
-                    />
-                    {errors.originalPrice && (
-                      <p className="text-red-500 text-sm mt-1">{errors.originalPrice}</p>
-                    )}
-                  </div>
-                )}
-                {originalPrice && (
-                  <div className="mb-4">
-                    <label htmlFor="discountPercentage" className="block mb-1">
-                      Discount Percentage
-                    </label>
-                    <input
-                      placeholder="Enter product discount percentage"
-                      type="number"
-                      id="discountPercentage"
-                      value={discountPercentage}
-                      onChange={(e) => setDiscountPercentage(e.target.value)}
-                      name="discountPercentage"
-                      className={`
-                        w-full
-                        px-4
-                        py-2
-                        border
-                        rounded-md
-                        ${isDarkMode ? 'bg-gray-600 text-white' : 'bg-gray-300 text-black'}
-                      `}
-                      min="0"
-                      max="100"
-                      step="0.01"
-                    />
-                    {errors.discountPercentage && (
-                      <p className="text-red-500 text-sm mt-1">{errors.discountPercentage}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-            <div>
-              <label
-                htmlFor="price"
-                className="block mb-1"
-              >
-                New Price
-              </label>
-              <input
-                placeholder="Enter product price"
-                type="number"
-                id="price"
-                name="price"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className={`w-full px-4 py-2 border rounded-md ${
-                  isDarkMode ? 'bg-gray-600 text-white' : 'bg-gray-300 text-black'
-                }`}
-                min="0"
-                step="0.01"
-              />
-            </div>
-          </div>
+      
           <button
             type="submit"
             className="mt-2 w-full  py-2 bg-green-400 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-i[#caacfb]"

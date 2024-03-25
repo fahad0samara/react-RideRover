@@ -1,10 +1,10 @@
-//@ts-nocheck
 
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import axios from "axios";
 import API_URL from "./apiConfig";
 import { FaImage } from "react-icons/fa"; // Import image icon
-import Switch from 'react-switch';
+
 import { useNavigate } from "react-router-dom";
 import {Helmet} from "react-helmet";
 import { useDarkMode } from "./hooks/useDarkMode";
@@ -19,28 +19,38 @@ const CreateProductForm = () => {
     name: string;
     description: string;
     price: string;
-originalPrice: string;
-    discountPercentage: string;
     image: File | string;
-    flavor: string;
-    isNewProduct: boolean; 
+    category: "",
 
   }>({
     name: "",
     description: "",
     price: "",
 
-    originalPrice: "",
-    discountPercentage: "",
     image: "",
-    flavor: "",
-    isNewProduct: false,
+    category: "",
+
+   
   });
-  const [productAdded, setProductAdded] = useState(false);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false); // Loading state
   const [showAdditionalFields, setShowAdditionalFields] = useState(false);
-  //saucss meassge
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/products/categories`);
+        setCategories(response.data);
+        console.log(response);
+        
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
 
   const handleInputChange = (
@@ -78,11 +88,10 @@ originalPrice: string;
     formDataToSend.append("name", formData.name);
     formDataToSend.append("description", formData.description);
     formDataToSend.append("price", formData.price);
-    formDataToSend.append("originalPrice", formData.originalPrice);
-    formDataToSend.append("discountPercentage", formData.discountPercentage);
-    formDataToSend.append("flavor", formData.flavor);
+    formDataToSend.append("category",formData.category )
+
     formDataToSend.append("image", formData.image);
-    formDataToSend.append("isNewProduct", String(formData.isNewProduct)); 
+
 
     try {
       const response = await axios.post(`${API_URL}/products`, formDataToSend);
@@ -92,11 +101,11 @@ originalPrice: string;
         name: "",
         description: "",
         price: "",
-        originalPrice: "",
-        discountPercentage: "",
+        category: "",
+  
         image: "",
-        flavor: "",
-        isNewProduct: false,
+
+
       });
   console.log("Product added successfully", response.data);
   
@@ -342,128 +351,54 @@ originalPrice: string;
                         required
                       />
                     </div>
-                    <div className="w-full sm:w-1/2 px-2 mb-4">
-                      <label
-                        htmlFor="flavor"
-                        className="block mb-1 "
-                      >
-                        Flavor
-                      </label>
-                      <input
-                        placeholder="Enter product flavor"
-                        type="text"
-                        id="flavor"
-                        name="flavor"
-                        value={formData.flavor}
-                        onChange={handleInputChange}
-                        className={`
-    w-full
-    px-4
-    py-2
-    border
-    rounded-md
-    ${isDarkMode ? "bg-gray-600 text-white" : "bg-gray-300 text-black"}
-  `}
-                        required
-                      />
-                    </div>
+           
                     <div className="w-full px-2 mb-4 flex items-center">
-                    <div className="w-full px-2 mb-4 flex items-center">
-  <label htmlFor="isNewProduct" className="mr-4">
-    Is the product new?
-    <span className="ml-2">{formData.isNewProduct ? "Yes" : "No"}</span>
-  </label>
-  <Switch
-    id="isNewProduct" 
-    onChange={() => setFormData({ ...formData, isNewProduct: !formData.isNewProduct })}
-    checked={formData.isNewProduct}
-  />
-</div>
+
 
       </div>
+        {/* Category */}
+  <div className="w-full px-2 mb-4">
+    <div className="mb-4">
+      <label htmlFor="category" className="block mb-1">
+      category
+      </label>
+      <select
+        required
+        id="category"
+        name="category"
+        value={formData.category}
+        onChange={handleInputChange}
+        className={`
+          w-full
+          px-4
+          py-2
+          border
+          rounded-md
+          ${
+            isDarkMode
+              ? "bg-gray-600 text-white"
+              : "bg-gray-300 text-black"
+          }
+        `}
+      >
+        <option value="">
+           select  category
+   
+        </option>
+        {categories.map((category) => (
+          <option key={category._id} value={category._id}>
+                      {category}
 
-                    <div className="w-full px-2 mb-4 flex items-center">
-  <label className="mr-4" 
-  htmlFor="showAdditionalFields"
-  >
-    Do you want to add discount to the product?
-    <span className="ml-2">{showAdditionalFields ?
-      "Yes" : "No"
-      
-    
-      
-    }</span>
-    {showAdditionalFields && (
-      <span className="ml-4">
-        Fill in the discount price and discount percentage.
-      </span>
-    )}
-  </label>
-  <Switch
-    id="showAdditionalFields"
-    onChange={() => setShowAdditionalFields(!showAdditionalFields)}
-    checked={showAdditionalFields}
-  />
+          </option>
+        ))}
+      </select>
+    </div>
+
+  </div>
+
 </div>
 
-    {showAdditionalFields && (
-                    <div className="w-full sm:w-1/2 px-2 mb-4">
-                      <label
-                        htmlFor="originalPrice"
-                        className="block mb-1 "
-                      >
-                      discount price 
-                      </label>
-                      <input
-                        placeholder="Enter product original price"
-                        type="number"
-                        id="originalPrice"
-                        name="originalPrice"
-                        value={formData.originalPrice}
-                        onChange={handleInputChange}
-                        className={`
-                        w-full
-                        px-4
-                        py-2
-                        border
-                        rounded-md
-                        ${isDarkMode ? "bg-gray-600 text-white" : "bg-gray-300 text-black"}
-                      `}
-                        min="0"
-                        step="0.01"
-                      />
-                    </div>
-                    )}
-                    {showAdditionalFields && (
-                    <div className="w-full sm:w-1/2 px-2 mb-4">
-                      <label
-                        htmlFor="discountPercentage"
-                        className="block mb-1 "
-                      >
-                        Discount Percentage
-                      </label>
-                      <input
-                        placeholder="Enter product discount percentage"
-                        type="number"
-                        id="discountPercentage"
-                        name="discountPercentage"
-                        value={formData.discountPercentage}
-                        onChange={handleInputChange}
-                        className={`
-                        w-full
-                        px-4
-                        py-2
-                        border
-                        rounded-md
-                        ${isDarkMode ? "bg-gray-600 text-white" : "bg-gray-300 text-black"}
-                      `}
-                        min="0"
-                        max="100"
-                        step="0.01"
-                      />
-                    </div>
-                    )}
-                  </div>
+   
 
                   <div className="w-full px-2 mb-4 flex justify-center items-center">
   {loading ? (
