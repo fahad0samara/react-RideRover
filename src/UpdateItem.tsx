@@ -80,7 +80,7 @@ const UpdateMenuItemForm: React.FC<UpdateMenuItemFormProps> = ({
     }
     try {
       setIsLoading(true);
-      const response = await fetch(`${API_URL}/products/${itemId}`, {
+      const response = await fetch(`${API_URL}/bikes/${itemId}`, {
         method: 'PUT',
         body: formData,
       });

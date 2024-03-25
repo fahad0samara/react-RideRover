@@ -40,7 +40,7 @@ const CreateProductForm = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(`${API_URL}/products/categories`);
+        const response = await axios.get(`${API_URL}/bikes/categories`);
         setCategories(response.data);
         console.log(response);
         
@@ -94,7 +94,7 @@ const CreateProductForm = () => {
 
 
     try {
-      const response = await axios.post(`${API_URL}/products`, formDataToSend);
+      const response = await axios.post(`${API_URL}/bikes`, formDataToSend);
       console.log(response.data);
       // Reset form data after successful submission
       setFormData({

@@ -44,7 +44,7 @@ const DESCENDING = 'desc';
     try {
       setLoading(true)
       const { data } = await axios.get<MenuItem[]>(
-        `${API_URL}/products?page=${page}&limit=${itemsPerPage}&search=${searchQuery}&sortColumn=${sortColumn}&sortDirection=${sortDirection}`
+        `${API_URL}/bikes?page=${page}&limit=${itemsPerPage}&search=${searchQuery}&sortColumn=${sortColumn}&sortDirection=${sortDirection}`
       );
       setData(data.products);
       setTotalPages(data.totalPages);
@@ -85,7 +85,7 @@ const DESCENDING = 'desc';
     try {
       setLoading(true)
       await axios.delete(
-        `${API_URL}/products/${deletingCatId}`
+        `${API_URL}/bikes/${deletingCatId}`
       )
       setData(data.filter((cat: any) => cat._id !== deletingCatId))
       setConfirmDelete(false)

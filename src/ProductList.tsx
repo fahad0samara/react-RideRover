@@ -10,7 +10,7 @@ const ProductList: React.FC = () => {
 
   const fetchProducts = async (page: number, pageSize: number) => {
     try {
-      const response = await axios.get(`${API_URL}/products?page=${page}&pageSize=${pageSize}`);
+      const response = await axios.get(`${API_URL}/bikes?page=${page}&pageSize=${pageSize}`);
       setProducts(response.data.products);
       setTotalPages(response.data.totalPages);
       setCurrentPage(response.data.currentPage);
